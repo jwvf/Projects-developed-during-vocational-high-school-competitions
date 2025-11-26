@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工厂监视系统</title>
+    <script src="chart.umd.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Microsoft+YaHei&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+            color: #fff;
+            min-height: 100vh
+        }
+
+        .header {
+            background: rgba(15, 23, 42, .7);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(94, 234, 212, .2)
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #5eead4;
+            text-shadow: 0 0 10px rgba(94, 234, 212, .5)
+        }
+
+        .header-info {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            color: #94a3b8
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(94, 234, 212, .1);
+            color: #5eead4;
+            border: 1px solid rgba(94, 234, 212, .2);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all .3s;
+            backdrop-filter: blur(5px)
+        }
+
+        .nav-btn:hover {
+            background: rgba(94, 234, 212, .2);
+            box-shadow: 0 0 15px rgba(94, 234, 212, .3)
+        }
+
+        .nav-btn.active {
+            background: rgba(94, 234, 212, .3);
+            border-color: #5eead4
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, .5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(94, 234, 212, .1);
+            box-shadow: 0 8px 32px rgba(2, 8, 20, .4);
+            transition: all .3s
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(2, 8, 20, .6);
+            border-color: rgba(94, 234, 212, .3)
+        }
+
+        .stat-card h3 {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #5eead4;
+            text-shadow: 0 0 8px rgba(94, 234, 212, .4)
+        }
+
+        .monitor-container {
+            padding: 20px
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px
+        }
+
+        .monitor-section {
+            background: rgba(15, 23, 42, .5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(94, 234, 212, .1);
+            box-shadow: 0 8px 32px rgba(2, 8, 20, .4)
+        }
+
+        .monitor-section h2 {
+            color: #5eead4;
+            margin-bottom: 20px;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(94, 234, 212, .2)
+        }
+
+        .device-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .device-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 15px;
+            background: rgba(15, 23, 42, .7);
+            border-radius: 12px;
+            border-left: 4px solid #5eead4;
+            box-shadow: 0 4px 15px rgba(2, 8, 20, .3);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .device-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .robot-progress-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .progress-card {
+            background: rgba(15, 23, 42, .7);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(94, 234, 212, .2);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(148, 163, 184, .2);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #5eead4, #34d399);
+            border-radius: 4px;
+            transition: width .3s ease;
+            box-shadow: 0 0 8px rgba(94, 234, 212, .4);
+        }
+
+        .scan-result {
+            background: rgba(15, 23, 42, .7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(251, 191, 36, .3);
+        }
+
+        .scan-result h4 {
+            color: #fbbf24;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .scan-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .scan-details div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .scan-details span:last-child {
+            color: #5eead4;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite
+        }
+
+        .status-online {
+            background: #34d399;
+            box-shadow: 0 0 8px #34d399
+        }
+
+        .status-offline {
+            background: #f87171;
+            box-shadow: 0 0 8px #f87171
+        }
+
+        .status-warning {
+            background: #fbbf24;
+            box-shadow: 0 0 8px #fbbf24
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .5
+            }
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: rgba(94, 234, 212, .1);
+            color: #5eead4;
+            border: 1px solid rgba(94, 234, 212, .2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all .3s;
+            backdrop-filter: blur(5px)
+        }
+
+        .control-btn:hover {
+            background: rgba(94, 234, 212, .2);
+            box-shadow: 0 0 15px rgba(94, 234, 212, .3)
+        }
+
+        .control-btn:active {
+            transform: scale(.95)
+        }
+
+        .toggle-btn.on {
+            background: rgba(52, 211, 153, .2);
+            border-color: #34d399;
+            color: #34d399
+        }
+
+        .toggle-btn.off {
+            background: rgba(248, 113, 113, .2);
+            border-color: #f87171;
+            color: #f87171
+        }
+
+        .order-container {
+            display: none;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        .order-section {
+            background: rgba(15, 23, 42, .5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(94, 234, 212, .1);
+            box-shadow: 0 8px 32px rgba(2, 8, 20, .4);
+            margin-bottom: 20px
+        }
+
+        .order-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+        .form-group label {
+            color: #94a3b8;
+            font-size: 14px
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            background: rgba(15, 23, 42, .7);
+            border: 1px solid rgba(94, 234, 212, .2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #5eead4;
+            box-shadow: 0 0 8px rgba(94, 234, 212, .3)
+        }
+
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(15, 23, 42, .7);
+            border-radius: 12px;
+            border-left: 4px solid #5eead4
+        }
+
+        .order-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .order-info span {
+            color: #94a3b8;
+            font-size: 14px
+        }
+
+        .order-info .order-id {
+            color: #5eead4;
+            font-weight: bold
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, .2);
+            border-color: #f87171;
+            color: #f87171
+        }
+
+        .btn-danger:hover {
+            background: rgba(248, 113, 113, .3);
+            box-shadow: 0 0 15px rgba(248, 113, 113, .3)
+        }
+
+        .btn-warning {
+            background: rgba(251, 191, 36, .2);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .btn-warning:hover {
+            background: rgba(251, 191, 36, .3);
+            box-shadow: 0 0 15px rgba(251, 191, 36, .3);
+        }
+
+        .animated {
+            animation: slideIn .6s ease-out forwards;
+            will-change: transform, opacity;
+            transform: translateZ(0)
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media(max-width:768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px
+            }
+
+            .monitor-grid {
+                grid-template-columns: 1fr
+            }
+
+            .nav-buttons {
+                flex-wrap: wrap;
+                justify-content: center
+            }
+
+            .order-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .order-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, .3)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(94, 234, 212, .5);
+            border-radius: 4px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(94, 234, 212, .8)
+        }
+
+        /* 表单验证样式 */
+        .validation-hint {
+            color: #fbbf24;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        input:focus:invalid~.validation-hint {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🏭 工厂监视系统</h1>
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showView('monitor')">监控界面</button>
+            <button class="nav-btn" onclick="showView('orders')">订单管理</button>
+        </div>
+        <div class="header-info">
+            <span id="date"></span>
+            <span id="clock"></span>
+            <span>👤 操作员：张三</span>
+            <span>🏢 车间：A1</span>
+        </div>
+    </div>
+
+    <!-- 监控界面 -->
+    <div id="monitorView" class="monitor-view">
+        <div class="stats-container">
+            <div class="stat-card animated">
+                <h3>今日产量（件）</h3>
+                <div class="stat-value" id="yield">--</div>
+                <button id="clrBtn" class="control-btn">产量清零</button>
+            </div>
+            <div class="stat-card animated">
+                <h3>急停状态</h3>
+                <div class="stat-value" id="estop">--</div>
+            </div>
+            <div class="stat-card animated">
+                <h3>设备启停</h3>
+                <div class="stat-value" id="runStat">--</div>
+                <button id="toggleRun" class="control-btn toggle-btn off">启动</button>
+            </div>
+            <!-- 扫码结果合并显示 -->
+            <div class="stat-card animated">
+                <h3>扫码结果</h3>
+                <div class="scan-result">
+                    <div class="scan-details">
+                        <div><span>日期:</span> <span id="scanDate">--</span></div>
+                        <div><span>数量:</span> <span id="scanQty">--</span></div>
+                        <div><span>综合状态:</span> <span id="scanStatus">--</span></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 产品累计寄存器 -->
+            <div class="stat-card animated">
+                <h3>产品A累计（寄存器16）</h3>
+                <div class="stat-value" id="prodA">--</div>
+            </div>
+            <div class="stat-card animated">
+                <h3>产品B累计（寄存器17）</h3>
+                <div class="stat-value" id="prodB">--</div>
+            </div>
+            <div class="stat-card animated">
+                <h3>产品C累计（寄存器18）</h3>
+                <div class="stat-value" id="prodC">--</div>
+            </div>
+        </div>
+
+        <div class="monitor-container">
+            <div class="monitor-grid">
+                <div class="monitor-section animated">
+                    <h2>🔧 设备状态</h2>
+                    <div class="device-status" id="devices"></div>
+                </div>
+                <div class="monitor-section animated">
+                    <h2>📦 视觉系统</h2>
+                    <div class="device-status" id="vision"></div>
+                </div>
+                <!-- 机器人生产进度 -->
+                <div class="monitor-section animated">
+                    <h2>🤖 机器人生产进度</h2>
+                    <div class="robot-progress-grid" id="robotProgress"></div>
+                </div>
+                <div class="monitor-section animated">
+                    <h2>📊 近12小时产量曲线</h2>
+                    <div style="height:260px"><canvas id="chart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 订单界面 -->
+    <div id="orderView" class="order-container">
+        <div class="order-section animated">
+            <h2>📋 创建新订单</h2>
+            <form class="order-form" id="orderForm">
+                <div class="form-group">
+                    <label for="orderId">订单编号</label>
+                    <input type="text" id="orderId" required placeholder="输入订单编号">
+                </div>
+
+                <!-- 三种产品数量输入 -->
+                <div class="form-group">
+                    <label for="quantityA">产品A数量 <span style="color:#5eead4">(寄存器16)</span></label>
+                    <input type="number" id="quantityA" min="0" placeholder="输入产品A数量" value="0" required>
+                    <div class="validation-hint">请输入大于等于0的整数</div>
+                </div>
+                <div class="form-group">
+                    <label for="quantityB">产品B数量 <span style="color:#5eead4">(寄存器17)</span></label>
+                    <input type="number" id="quantityB" min="0" placeholder="输入产品B数量" value="0" required>
+                    <div class="validation-hint">请输入大于等于0的整数</div>
+                </div>
+                <div class="form-group">
+                    <label for="quantityC">产品C数量 <span style="color:#5eead4">(寄存器18)</span></label>
+                    <input type="number" id="quantityC" min="0" placeholder="输入产品C数量" value="0" required>
+                    <div class="validation-hint">请输入大于等于0的整数</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">优先级</label>
+                    <select id="priority" required>
+                        <option value="normal">普通</option>
+                        <option value="urgent">紧急</option>
+                        <option value="vip">VIP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="deliveryDate">交货日期</label>
+                    <input type="date" id="deliveryDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer">客户名称</label>
+                    <input type="text" id="customer" required placeholder="输入客户名称">
+                </div>
+            </form>
+            <div class="control-panel">
+                <button type="submit" form="orderForm" class="control-btn">创建订单</button>
+                <button type="reset" form="orderForm" class="control-btn">重置表单</button>
+            </div>
+        </div>
+
+        <div class="order-section animated">
+            <h2>📊 订单列表</h2>
+            <div class="order-list" id="orderList"></div>
+        </div>
+    </div>
+
+    <script>
+        const regLabel = {
+            0: 'PLC 状态', 1: '组装机器人(橘)', 2: '码垛机器人(白)', 3: '上位机状态',
+            4: '橘色机器人任务', 5: '白色机器人任务', 6: '急停状态', 7: '今日产量',
+            8: '设备启停', 10: '冲压视觉', 11: '打标相似度(彩色)', 12: '打标相似度(深度)'
+        };
+
+        const robotTaskLabel = {
+            0: '空闲', 1: '取板', 2: '打螺丝', 3: '搬运', 4: '码垛'
+        };
+
+        function fmt(idx, val) {
+            if (idx === 6) return val === 0 ? '正常' : '触发';
+            if (idx === 7) return val;
+            if (idx === 8) return val === 1 ? '运行' : '停止';
+            if (idx === 10) return val === 1 ? 'OK' : 'FAIL';
+            if (idx === 11 || idx === 12) return (val / 100).toFixed(2) + '%';
+            if (idx === 0 || idx === 1 || idx === 2 || idx === 3) return val === 1 ? '正常' : '停止';
+            if (idx === 4 || idx === 5) return robotTaskLabel[val] || '未知';
+            return val;
+        }
+
+        function dotClass(idx, val) {
+            if (idx === 6) return val === 0 ? 'online' : 'offline';
+            if (idx === 8) return val === 1 ? 'online' : 'offline';
+            if (idx === 0 || idx === 1 || idx === 2 || idx === 3) return val === 1 ? 'online' : 'offline';
+            if (idx === 10) return val === 1 ? 'online' : 'offline';
+            if (idx === 11 || idx === 12) return val > 90000 ? 'online' : 'warning';
+            return 'warning';
+        }
+
+        function calcRobotProgress(robotIdx, taskIdx, prodA, prodB, prodC) {
+            const status = { name: robotIdx === 1 ? '橘色机器人' : '白色机器人', task: '空闲', progress: 0 };
+
+            if (robotIdx === 1) {
+                status.task = robotTaskLabel[taskIdx] || '未知';
+                if (taskIdx === 2) status.progress = Math.min((prodA % 100), 100);
+                else if (taskIdx === 1) status.progress = Math.min((prodB % 100), 100);
+            } else {
+                status.task = robotTaskLabel[taskIdx] || '未知';
+                if (taskIdx === 4) status.progress = Math.min((prodC % 100), 100);
+            }
+            return status;
+        }
+
+        function showView(viewName) {
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
+
+            if (viewName === 'monitor') {
+                document.getElementById('monitorView').style.display = 'block';
+                document.getElementById('orderView').style.display = 'none';
+                navBtns[0].classList.add('active');
+            } else if (viewName === 'orders') {
+                document.getElementById('monitorView').style.display = 'none';
+                document.getElementById('orderView').style.display = 'block';
+                navBtns[1].classList.add('active');
+                loadOrders();
+            }
+        }
+
+        // 订单表单提交
+        document.getElementById('orderForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const quantityA = parseInt(document.getElementById('quantityA').value) || 0;
+            const quantityB = parseInt(document.getElementById('quantityB').value) || 0;
+            const quantityC = parseInt(document.getElementById('quantityC').value) || 0;
+
+            if (quantityA + quantityB + quantityC === 0) {
+                alert('请至少设置一种产品的数量！');
+                return;
+            }
+
+            const order = {
+                id: document.getElementById('orderId').value,
+                quantity_a: quantityA,
+                quantity_b: quantityB,
+                quantity_c: quantityC,
+                priority: document.getElementById('priority').value,
+                deliveryDate: document.getElementById('deliveryDate').value,
+                customer: document.getElementById('customer').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order)
+            });
+            this.reset();
+            loadOrders();
+            alert('订单创建成功！');
+        });
+
+        // 加载订单列表
+        async function loadOrders() {
+            const res = await fetch('/api/orders');
+            const orders = await res.json();
+            const orderList = document.getElementById('orderList');
+            orderList.innerHTML = '';
+            if (orders.length === 0) {
+                orderList.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">暂无订单</div>';
+                return;
+            }
+
+            orders.forEach((order) => {
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                const priorityColors = {
+                    normal: '#94a3b8',
+                    urgent: '#fbbf24',
+                    vip: '#f87171'
+                };
+
+                // 构建产品数量显示
+                const products = [];
+                if (order.quantity_a > 0) products.push(`A: ${order.quantity_a}`);
+                if (order.quantity_b > 0) products.push(`B: ${order.quantity_b}`);
+                if (order.quantity_c > 0) products.push(`C: ${order.quantity_c}`);
+
+                // 状态文本和颜色
+                let statusText = '待执行';
+                if (order.status === 'executed') statusText = '已生产';
+                else if (order.status === 'returned') statusText = '已退回';
+
+                orderItem.innerHTML = `
+                    <div class="order-info">
+                        <span class="order-id">订单号: ${order.id}</span>
+                        <span>产品: ${products.join(' | ') || '无'}</span>
+                        <span>客户: ${order.customer}</span>
+                        <span>交货: ${order.deliveryDate}</span>
+                        <span style="color: ${priorityColors[order.priority]}">优先级: ${order.priority}</span>
+                        <span style="margin-left:10px; color:#5eead4">状态: ${statusText}</span>
+                    </div>
+                    <div class="order-actions">
+                        ${order.status === 'pending' ? `
+                            <button class="control-btn btn-small" onclick="execOrder('${order.id}', 'produce')">执行生产</button>
+                            <button class="control-btn btn-small btn-danger" onclick="deleteOrder('${order.id}', '${order.status}')">删除</button>
+                        ` : ''}
+                        ${order.status === 'executed' ? `
+                            <button class="control-btn btn-small btn-danger" onclick="execOrder('${order.id}', 'return')">执行退回</button>
+                            <button class="control-btn btn-small btn-warning" onclick="deleteOrder('${order.id}', '${order.status}')">强制删除</button>
+                        ` : ''}
+                        ${order.status === 'returned' ? `
+                            <button class="control-btn btn-small btn-warning" onclick="deleteOrder('${order.id}', '${order.status}')">强制删除</button>
+                        ` : ''}
+                    </div>
+                `;
+                orderList.appendChild(orderItem);
+            });
+        }
+
+        // 执行订单（生产/退回）
+        async function execOrder(orderId, action) {
+            const actionText = action === 'produce' ? '生产' : '退回';
+            const confirmText = action === 'return' ?
+                '确定要退回这个订单吗？寄存器值将相应减少！' :
+                '确定要执行生产吗？';
+
+            if (!confirm(confirmText)) return;
+
+            const res = await fetch(`/api/orders/${orderId}/exec?action=${action}`, { method: 'POST' });
+            const j = await res.json();
+            if (res.ok) {
+                let resultText = `${actionText}成功！\n`;
+                for (const [product, info] of Object.entries(j.results)) {
+                    resultText += `产品${product}: ${info.old} → ${info.new}\n`;
+                }
+                alert(resultText);
+                loadOrders();
+                fetchReal();
+            } else {
+                alert('执行失败：' + j.detail);
+            }
+        }
+
+        // 删除订单（支持强制删除已执行订单）
+        async function deleteOrder(orderId, orderStatus) {
+            const isPending = orderStatus === 'pending';
+            const confirmText = isPending
+                ? '确定要删除这个订单吗？'
+                : '⚠️ 警告：此订单已执行！\n删除后寄存器值不会回退。\n\n确定要强制删除吗？';
+
+            if (!confirm(confirmText)) return;
+
+            // 对已执行的订单自动添加 force=true
+            const url = isPending
+                ? `/api/orders/${orderId}`
+                : `/api/orders/${orderId}?force=true`;
+
+            await fetch(url, { method: 'DELETE' });
+            loadOrders();
+            fetchReal();
+        }
+
+        // 获取实时数据
+        async function fetchReal() {
+            const res = await fetch('/api/registers');
+            const data = await res.json();
+
+            // 基础数据
+            document.getElementById('yield').textContent = data[7] ?? '--';
+            document.getElementById('estop').textContent = fmt(6, data[6]);
+
+            // 产品累计（带动画）
+            const prodA = data[16] ?? 0;
+            const prodB = data[17] ?? 0;
+            const prodC = data[18] ?? 0;
+            animateValue('prodA', document.getElementById('prodA').textContent, prodA);
+            animateValue('prodB', document.getElementById('prodB').textContent, prodB);
+            animateValue('prodC', document.getElementById('prodC').textContent, prodC);
+
+            // 扫码结果
+            const scanDate = data[14] ?? 0;
+            const scanQty = data[15] ?? 0;
+            document.getElementById('scanDate').textContent = scanDate || '--';
+            document.getElementById('scanQty').textContent = scanQty || '--';
+            document.getElementById('scanStatus').textContent = scanDate > 0 && scanQty > 0 ? '✅ 有效' : '❌ 无效';
+
+            // 设备状态
+            const run = data[8] ?? 0;
+            document.getElementById('runStat').textContent = fmt(8, run);
+            const btn = document.getElementById('toggleRun');
+            btn.textContent = run ? '停止' : '启动';
+            btn.className = 'control-btn toggle-btn ' + (run ? 'on' : 'off');
+
+            // 渲染设备状态
+            const devBox = document.getElementById('devices');
+            devBox.innerHTML = '';
+            [0, 1, 2, 3, 6, 8].forEach(idx => {
+                const item = document.createElement('div');
+                item.className = 'device-item';
+                item.innerHTML = `
+                    <div class="device-header">
+                        <span class="device-name">${regLabel[idx]}</span>
+                        <div class="status-indicator">
+                            <span class="status-dot status-${dotClass(idx, data[idx])}"></span>
+                            <span>${fmt(idx, data[idx])}</span>
+                        </div>
+                    </div>
+                `;
+                devBox.appendChild(item);
+            });
+
+            // 渲染视觉系统
+            const visBox = document.getElementById('vision');
+            visBox.innerHTML = '';
+            [10, 11, 12].forEach(idx => {
+                const item = document.createElement('div');
+                item.className = 'device-item';
+                item.innerHTML = `
+                    <div class="device-header">
+                        <span class="device-name">${regLabel[idx]}</span>
+                        <div class="status-indicator">
+                            <span class="status-dot status-${dotClass(idx, data[idx])}"></span>
+                            <span>${fmt(idx, data[idx])}</span>
+                        </div>
+                    </div>
+                    <div class="device-meta">寄存器 ${idx}</div>
+                `;
+                visBox.appendChild(item);
+            });
+
+            // 机器人生产进度
+            const robotBox = document.getElementById('robotProgress');
+            robotBox.innerHTML = '';
+            const orangeProgress = calcRobotProgress(1, data[4], data[16], data[17], data[18]);
+            const whiteProgress = calcRobotProgress(2, data[5], data[16], data[17], data[18]);
+            [orangeProgress, whiteProgress].forEach(robot => {
+                const card = document.createElement('div');
+                card.className = 'progress-card';
+                card.innerHTML = `
+                    <div class="device-header">
+                        <span class="device-name">${robot.name}</span>
+                        <span style="color: #5eead4">${robot.progress}%</span>
+                    </div>
+                    <div style="color: #94a3b8; font-size: 14px; margin-bottom: 8px">当前任务: ${robot.task}</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${robot.progress}%"></div>
+                    </div>
+                    <div class="device-meta">任务寄存器: ${robot.name.includes('橘色') ? '4' : '5'}</div>
+                `;
+                robotBox.appendChild(card);
+            });
+        }
+
+        // 数值变化动画
+        function animateValue(elementId, start, end) {
+            const element = document.getElementById(elementId);
+            const startNum = parseInt(start) || 0;
+            const endNum = parseInt(end);
+            const duration = 500;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(startNum + (endNum - startNum) * progress);
+                element.textContent = current;
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // 控制按钮事件
+        document.getElementById('clrBtn').onclick = async () => {
+            await fetch('/api/write?reg=7&val=0', { method: 'POST' });
+            fetchReal();
+        };
+
+        document.getElementById('toggleRun').onclick = async () => {
+            const res = await fetch('/api/registers');
+            const data = await res.json();
+            const next = data[8] ? 0 : 1;
+            await fetch(`/api/write?reg=8&val=${next}`, { method: 'POST' });
+            fetchReal();
+        };
+
+        // 图表
+        let chart;
+        async function drawHistory() {
+            const raw = await fetch('/api/history').then(r => r.json());
+            const labels = raw.map(p => p.t), data = raw.map(p => p.v);
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: '产量（件）', data, borderColor: '#5eead4', backgroundColor: 'rgba(94,234,212,.15)', tension: .25, fill: true }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: false, suggestedMin: Math.min(...data) - 10, suggestedMax: Math.max(...data) + 10 }
+                    }
+                }
+            });
+        }
+
+        // 时钟
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('date').textContent = now.toLocaleDateString('zh-CN');
+            document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN');
+        }
+
+        // 初始化
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('deliveryDate').value = tomorrow.toISOString().split('T')[0];
+
+        setInterval(updateClock, 1000);
+        setInterval(fetchReal, 500);
+        setInterval(drawHistory, 300000);
+        updateClock(); fetchReal(); drawHistory();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+{
+  "roi": [
+    111,
+    302,
+    2658,
+    881
+  ],
+  "params": {
+    "brightness": 200,
+    "blur": 15,
+    "block_size": 199,
+    "c_value": 0,
+    "morphology": 7,
+    "invert_binary": 1
+  }
+}

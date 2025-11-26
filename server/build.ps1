@@ -1,0 +1,1 @@
+.\runtime\python.exe -m nuitka --onefile --remove-output --output-dir=build --lto=yes main.py

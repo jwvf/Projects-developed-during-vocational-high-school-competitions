@@ -1,0 +1,35 @@
+{
+  "camera": {
+    "align_mode": "SW_MODE",
+    "enable_sync": true,
+    "min_depth": 0,
+    "max_depth": 10000000,
+    "color_width": 3840,
+    "color_height": 2160,
+    "color_fps": 30,
+    "depth_width": 1024,
+    "depth_height": 1024,
+    "depth_fps": 15
+  },
+  "similarity": {
+    "color_threshold": 0.85,
+    "depth_threshold": 0.8
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "display": {
+    "window_width": 1280,
+    "window_height": 720,
+    "visualization": false
+  },
+  "server": {
+    "ip": "127.0.0.1",
+    "port": 1400,
+    "retry_max": 5,
+    "timeout": 3
+  },
+  "thread_pool": {
+    "max_workers": 16
+  }
+}

@@ -1,0 +1,15 @@
+{
+    "visual": {
+        "ip": "192.168.0.100",
+        "port": 9876,
+        "buff_size": 32768,
+        "timeout": 3,
+        "retry_delay": 5
+    },
+    "server": {
+        "ip": "127.0.0.1",
+        "port": 1400,
+        "timeout": 3,
+        "retry_delay": 5
+    }
+}

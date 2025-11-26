@@ -1,0 +1,17 @@
+open3d
+./pyorbbecsdk-2.0.15-cp310-cp310-win_amd64.whl
+opencv-python
+numpy
+scipy
+scikit-image
+ultralytics
+fastapi
+uvicorn
+pydantic
+pyzmq
+psutil
+GPUtil
+pyyaml
+loguru
+pyzbar
+numba
