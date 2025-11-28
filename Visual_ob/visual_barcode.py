@@ -4,7 +4,7 @@ import json
 import numpy as np
 from PIL import Image
 from pyzbar.pyzbar import decode, ZBarSymbol
-from aligned_camera import AlignedCamera, OBAlignMode
+from aligned_camera import AlignedCamera, OBAlignMode # type: ignore
 
 class BarcodeScanner:
     """扫码主类，支持相机拍照或外部传入图像"""
@@ -240,10 +240,10 @@ class BarcodeScanner:
             return
         self.params.update({
             "brightness": b, "blur": blur,
-            "block_size": bs * 2 + 3,
+            "block_size": bs * 2 + 3, # type: ignore
             "c_value": c, "morphology": m,
             "invert_binary": inv
-        })
+        }) # type: ignore
         self.process_display()
 
     def preprocess(self, img):

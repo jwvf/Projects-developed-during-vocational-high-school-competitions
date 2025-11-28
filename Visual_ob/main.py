@@ -175,7 +175,7 @@ def main():
             # 初始化默认值（未识别到或出错时）
             date_part = 0
             seq_part = 0
-            
+
             try:
                 # 使用独立的条码配置文件（必须！）
                 result = quick_scan(color, "barcode_config.json")

@@ -1,4 +1,4 @@
-from visual_barcode.barcode_scanner import BarcodeScanner
+from visual_barcode import BarcodeScanner
 
 
 if __name__ == "__main__":

@@ -72,29 +72,29 @@ plc_send 5;
 run qwl,3,1,0.5,0,0,200;
 mho;
 run fwl,3,0,0.5,0,0,100;
-plc_send 6;
+plc_send 7;
 
 mho;
 
 fsj 4,0;
 
-while TRUE do
-plc_rec 3;
-if status{3}=1 then
-fsj 5,1;
-goto r6;
-endif
-endwhile
-r6:
-
-while TRUE do
-ssj 5,aa;
-if aa=0 goto r7;
-endwhile
-r7:
 endwhile
 endproc
 
+trap ixx1
+fsj 5,1;
+while true do
+ssj 5,aa;
+if aa = 0 goto r3;
+endwhile
+r3:
+endtrap
+
+proc zz1()
+idelete xx1;
+connect xx1 with ixx1;
+isignaldi a3,1,xx1;
+endproc
 
 proc plc_rec(num x)
 if a1 = 1 then
